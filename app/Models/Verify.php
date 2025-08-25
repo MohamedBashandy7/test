@@ -9,4 +9,10 @@ class Verify extends Model
 {
     /** @use HasFactory<\Database\Factories\VerifyFactory> */
     use HasFactory;
+    protected $fillable = [
+        'email',
+        'code',
+    ];
+ 
+    protected $table = 'verify';
 }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Users;
 use App\Http\Controllers\controller\Controller ;
 use App\Models\User;
 use App\Models\Verify;
-use App\Mail\VerificationEmail;
+use App\Mail\VerificationCodeMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -49,8 +49,8 @@ class UsersController extends Controller {
         // First validate the request
         MainVerifyController::register('register', 'user')($request);
         
-        $existingUserWithVerify = $this->checkIfUserExists($request->email, '1', $request->type);
-        $existingUserWithNotVerify = $this->checkIfUserExists($request->email, '0', $request->type);
+        $existingUserWithVerify = $this->checkIfUserExists($request->email, '1', $request->role);
+        $existingUserWithNotVerify = $this->checkIfUserExists($request->email, '0', $request->role);
 
         if ($existingUserWithVerify) {
             return response()->json([
@@ -58,10 +58,7 @@ class UsersController extends Controller {
                 'message' => 'البريد الإلكتروني موجود بالفعل',
             ], 400);
         }
-        
-        // Generate verification code
-        $verificationCode = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-        
+        $verificationCode = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
         if ($existingUserWithNotVerify) {
             // Update existing unverified user
             $user = $existingUserWithNotVerify;
@@ -73,7 +70,6 @@ class UsersController extends Controller {
                 'password' => Hash::make($request->password),
             ]);
         } else {
-            // Create new user
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -82,42 +78,21 @@ class UsersController extends Controller {
                 'password' => Hash::make($request->password),
             ]);
         }
-        
-        // Update or create verification code
         Verify::updateOrCreate(
             ['email' => $user->email],
             ['code' => $verificationCode]
         );
-        
-        // Send verification email
-        try {
-            $emailData = [
-                'verificationCode' => $verificationCode,
-                'user' => $user
-            ];
-            
-            Mail::to($user->email)->send(new VerificationEmail($emailData));
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'تم إرسال كود التفعيل إلى بريدك الإلكتروني',
-                'user' => $user
-            ]);
-            
-        } catch (\Exception $e) {
-            // Log the error
-            Log::error('Failed to send verification email: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'حدث خطأ أثناء إرسال بريد التفعيل. يرجى المحاولة مرة أخرى لاحقاً.'
-            ], 500);
-        }
+        Mail::to($request->email)->send(new VerificationCodeMail($verificationCode, $request->email));
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إرسال كود التفعيل إلى بريدك الإلكتروني',
+            'user' => $user
+        ]);
     }
-    public function checkIfUserExists($email, $is_verify, $type) {
+    public function checkIfUserExists($email, $is_verify, $role) {
         $existingUser = User::where('email', $email)
             ->where('is_verify', $is_verify)
-            ->where('type', $type)
+            ->where('role', $role)
             ->first();  
         return $existingUser;
     }
