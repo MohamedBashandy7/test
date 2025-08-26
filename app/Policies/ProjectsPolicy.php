@@ -11,9 +11,8 @@ class ProjectsPolicy {
         return true; // يمكن للجميع رؤية قائمة المشاريع
     }
 
-    public function view(User $user, Projects $projects): bool {
-        // يمكن للمدير أو مدير المشروع المخصص رؤية المشروع
-        return $user->isAdmin() || $projects->project_manager_id === $user->id;
+    public function view(User $user): bool {
+        return true;
     }
 
     public function create(User $user) {

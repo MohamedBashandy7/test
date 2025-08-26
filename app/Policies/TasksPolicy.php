@@ -23,9 +23,7 @@ class TasksPolicy {
     }
 
     public function update(User $user, Tasks $task): bool {
-        return $user->isAdmin() ||
-            $user->id === $task->project->project_manager_id ||
-            $user->id === $task->assigned_to;
+        return $user->id === $task->assigned_to && $user->isDeveloper();
     }
 
     public function updateStatus(User $user, Tasks $task): bool {
@@ -39,7 +37,7 @@ class TasksPolicy {
     }
 
     public function restore(User $user, Tasks $task): bool {
-        return $user->isAdmin() || $user->id === $task->project->project_manager_id;
+        return $user->isAdmin() || $user->isProjectManager();
     }
 
     public function forceDelete(User $user, Tasks $task): bool {

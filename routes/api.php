@@ -14,10 +14,10 @@ Route::post('/login', [UsersController::class, 'login']);
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [UsersController::class, 'logout']);
+    Route::get('/projects/search', [UsersProjectsController::class, 'getAllProjects']);
     Route::apiResource('projects', UsersProjectsController::class);
     Route::apiResource('tasks', UsersTasksController::class);
     Route::patch('/tasks/{task}/status', [UsersTasksController::class, 'updateStatus']);
     Route::get('/projects/{project}/tasks', [UsersTasksController::class, 'getProjectTasks']);
-    Route::get('/projects/search', [UsersProjectsController::class, 'getAllProjects']);
     Route::get('/developers', [UsersController::class, 'getAllUsers']);
 });
