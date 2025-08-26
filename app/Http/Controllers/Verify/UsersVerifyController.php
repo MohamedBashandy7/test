@@ -78,4 +78,36 @@ class UsersVerifyController extends Controller {
             ], 400);
         }
     }
+    public static function addTasks(Request $request) {
+        if (!$request->has('title') || empty($request->title)) {
+            return response([
+                'success' => false,
+                'message' => 'العنوان مطلوب',
+            ], 400);
+        }
+        if (!$request->has('description') || empty($request->description)) {
+            return response([
+                'success' => false,
+                'message' => 'الوصف مطلوب',
+            ], 400);
+        }
+        if (!$request->has('assigned_to') || empty($request->assigned_to)) {
+            return response([
+                'success' => false,
+                'message' => 'النوع مطلوب',
+            ], 400);
+        }
+        if (!$request->has('project_id') || empty($request->project_id)) {
+            return response([
+                'success' => false,
+                'message' => 'النوع مطلوب',
+            ], 400);
+        }
+        if (!$request->has('due_date') || empty($request->due_date)) {
+            return response([
+                'success' => false,
+                'message' => 'النوع مطلوب',
+            ], 400);
+        }
+    }
 }

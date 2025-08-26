@@ -22,14 +22,12 @@ class ProjectsPolicy {
         // : Response::deny('Only admins or project managers can create projects.');
     }
 
-    public function update(User $user, Projects $projects): bool {
-        // يمكن للمدير أو مدير المشروع المخصص تحديث المشروع
-        return $user->isAdmin() || $projects->project_manager_id === $user->id;
+    public function update(User $user): bool {
+        return $user->isAdmin() || $user->isProjectManager();
     }
 
-    public function delete(User $user, Projects $projects): bool {
-        // يمكن للمدير أو مدير المشروع المخصص حذف المشروع
-        return $user->isAdmin() || $projects->project_manager_id === $user->id;
+    public function delete(User $user): bool {
+        return $user->isAdmin() || $user->isProjectManager();
     }
 
     public function assignProjectManager(User $user): bool {

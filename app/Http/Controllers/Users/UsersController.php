@@ -15,8 +15,8 @@ use App\Http\Controllers\Verify\MainVerifyController;
 class UsersController extends Controller {
     public function login(Request $request) {
         MainVerifyController::login('login', 'shared')($request);
-        $checkIfUserExistsVerify = $this->checkIfUserExists($request->email, '1', $request->type);
-        $checkIfUserExistsNotVerify = $this->checkIfUserExists($request->email, '0', $request->type);
+        $checkIfUserExistsVerify = $this->checkIfUserExists($request->email, '1', $request->role);
+        $checkIfUserExistsNotVerify = $this->checkIfUserExists($request->email, '0', $request->role);
         if ($checkIfUserExistsNotVerify) {
             $verificationCode = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
             Verify::updateOrCreate(
@@ -28,7 +28,7 @@ class UsersController extends Controller {
             return response([
                 'success' => false,
                 'message' => 'تم إرسال كود التحقق إلى بريدك الإلكتروني',
-                'error_type' => 'verify'
+                'error_role' => 'verify'
             ]);
         }
         if ($checkIfUserExistsVerify) {
@@ -126,6 +126,19 @@ class UsersController extends Controller {
         return response()->json([
             'success' => true,
             'message' => 'تم تسجيل الخروج بنجاح',
+        ]);
+    }
+    public function getAllUsers(Request $request) {
+        $this->authorize('viewAny', User::class);
+        $query = User::query()->where('role', 'developer')->where('is_verify', '1');
+        if ($request->filled('name')) {
+            $name = $request->get('name');
+            $query->where('name', 'like', "%$name%");
+        }
+        $users = $query->get();
+        return response()->json([
+            'success' => true,
+            'data' => $users
         ]);
     }
 }

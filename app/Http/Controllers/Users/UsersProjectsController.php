@@ -13,23 +13,23 @@ use Illuminate\Support\Facades\Gate;
 
 
 class UsersProjectsController extends Controller {
-    public function index(): JsonResponse {
-        $user = Auth::user();
-        $query = Projects::with('projectManager');
+    // public function index(): JsonResponse {
+    //     $user = Auth::user();
+    //     $query = Projects::with('projectManager');
 
-        if ($user->type !== 'admin') {
-            $query->where('project_manager_id', $user->id);
-        }
+    //     if ($user->type !== 'admin') {
+    //         $query->where('project_manager_id', $user->id);
+    //     }
 
-        return response()->json([
-            'success' => true,
-            'data' => $query->get()
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $query->get()
+    //     ]);
+    // }
 
     public function store(Request $request) {
         $this->authorize('create', Projects::class);
-        MainVerifyController::addProjects($request);
+        MainVerifyController::addProjects('addProjects', 'user')($request);
         $projectData = $request->all();
         $projectData['project_manager_id'] = Auth::id();
         $project = Projects::create($projectData);
@@ -40,50 +40,18 @@ class UsersProjectsController extends Controller {
         ]);
     }
 
-    public function show(Projects $project): JsonResponse {
-        $user = Auth::user();
+    // public function show(Projects $project): JsonResponse {
 
-        // التحقق من الصلاحيات باستخدام Policy
-        if (!Gate::allows('view', $project)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. You do not have permission to view this project.'
-            ], 403);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $project->load('projectManager')
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $project->load('projectManager')
+    //     ]);
+    // }
 
     public function update(Request $request, Projects $project): JsonResponse {
-        $user = Auth::user();
-
-        // التحقق من الصلاحيات باستخدام Policy
-        if (!Gate::allows('update', $project)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. You do not have permission to update this project.'
-            ], 403);
-        }
-
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'project_manager_id' => 'sometimes|exists:users,id',
-            'status' => 'sometimes|in:open,in_progress,completed',
-            'start_date' => 'sometimes|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date'
-        ]);
-
-        // التحقق من صلاحية تغيير مدير المشروع
-        if (isset($validated['project_manager_id']) && !Gate::allows('assignProjectManager', $user)) {
-            unset($validated['project_manager_id']);
-        }
-
-        $project->update($validated);
-
+        $this->authorize('update', Projects::class);
+        MainVerifyController::addProjects('addProjects', 'user')($request);
+        $project->update($request->all());
         return response()->json([
             'success' => true,
             'message' => 'Project updated successfully',
@@ -91,22 +59,26 @@ class UsersProjectsController extends Controller {
         ]);
     }
 
-    public function destroy(Projects $project): JsonResponse {
-        $user = Auth::user();
-
-        // التحقق من الصلاحيات باستخدام Policy
-        if (!Gate::allows('delete', $project)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. You do not have permission to delete this project.'
-            ], 403);
-        }
-
-        $project->delete();
-
+    public function destroy(Projects $project) {
+        $this->authorize('delete', Projects::class);
+        $project->forceDelete(); // This will permanently delete the record
         return response()->json([
             'success' => true,
-            'message' => 'Project deleted successfully'
+            'message' => 'Project permanently deleted successfully'
+        ]);
+    }
+    public function getAllProjects(Request $request): JsonResponse {
+        $searchQuery = (string) $request->query('q', '');
+        $projectsQuery = Projects::with('projectManager')
+            ->when($searchQuery !== '', function ($query) use ($searchQuery) {
+                $query->where(function ($q) use ($searchQuery) {
+                    $q->where('name', 'like', "%{$searchQuery}%");
+                });
+            });
+        $projects = $projectsQuery->get();
+        return response()->json([
+            'success' => true,
+            'data' => $projects,
         ]);
     }
 }
