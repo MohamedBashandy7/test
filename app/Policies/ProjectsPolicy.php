@@ -16,8 +16,10 @@ class ProjectsPolicy {
         return $user->isAdmin() || $projects->project_manager_id === $user->id;
     }
 
-    public function create(User $user): bool {
+    public function create(User $user) {
         return $user->isAdmin() || $user->isProjectManager();
+        // ? Response::allow()
+        // : Response::deny('Only admins or project managers can create projects.');
     }
 
     public function update(User $user, Projects $projects): bool {

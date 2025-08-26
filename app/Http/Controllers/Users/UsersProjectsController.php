@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Users;
 
 use App\Http\Controllers\controller\Controller;
+use App\Http\Controllers\Verify\MainVerifyController;
 use App\Models\Projects;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+
 
 class UsersProjectsController extends Controller {
     public function index(): JsonResponse {
@@ -27,38 +29,15 @@ class UsersProjectsController extends Controller {
 
     public function store(Request $request) {
         $this->authorize('create', Projects::class);
-        // $user = Auth::user();
-        // if (!Gate::allows('create', Projects::class)) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Unauthorized. Only admins and project managers can create projects.'
-        //     ], 403);
-        // }
-
-        // $validated = $request->validate([
-        //     'name' => 'required|string|max:255',
-        //     'description' => 'nullable|string',
-        //     'project_manager_id' => 'required|exists:users,id',
-        //     'status' => 'required|in:open,in_progress,completed',
-        //     'start_date' => 'required|date',
-        //     'end_date' => 'nullable|date|after_or_equal:start_date'
-        // ]);
-
-        // // التحقق من صلاحية تعيين مدير المشروع
-        // if (!Gate::allows('assignProjectManager', $user) && $validated['project_manager_id'] != $user->id) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'You can only assign yourself as project manager.'
-        //     ], 403);
-        // }
-
-        // $project = Projects::create($validated);
-
-        // return response()->json([
-        //     'success' => true,
-        //     'message' => 'Project created successfully',
-        //     'data' => $project->load('projectManager')
-        // ], 201);
+        MainVerifyController::addProjects($request);
+        $projectData = $request->all();
+        $projectData['project_manager_id'] = Auth::id();
+        $project = Projects::create($projectData);
+        return response()->json([
+            'success' => true,
+            'message' => 'Project created successfully',
+            'data' => $project->load('projectManager')
+        ]);
     }
 
     public function show(Projects $project): JsonResponse {
