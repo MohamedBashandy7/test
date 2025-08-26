@@ -71,15 +71,66 @@ A robust RESTful API for managing projects, tasks, and user roles with a focus o
    DB_PASSWORD=your_password
    ```
 
-5. **Run Migrations**
+5. **Configure Mail Server**
+   Update your `.env` file with your mail server credentials to enable email verification and notifications:
+   ```env
+   MAIL_MAILER=smtp
+   MAIL_HOST=your-smtp-host.com
+   MAIL_PORT=587
+   MAIL_USERNAME=your-email@example.com
+   MAIL_PASSWORD=your-email-password
+   MAIL_ENCRYPTION=tls
+   MAIL_FROM_ADDRESS="hello@example.com"
+   MAIL_FROM_NAME="${APP_NAME}"
+   ```
+
+6. **Run Migrations**
    ```bash
    php artisan migrate --seed
    ```
 
-6. **Start Development Server**
+7. **Start Development Server**
    ```bash
    php artisan serve
    ```
+
+### Testing Authentication
+
+1. **Register a new user**
+   ```bash
+   curl -X POST http://localhost:8000/api/register \
+     -H "Content-Type: application/json" \
+     -d '{
+       "name": "Test User",
+       "email": "test@example.com",
+       "password": "password",
+       "password_confirmation": "password"
+     }'
+   ```
+   
+   You'll receive a verification email with a verification code.
+
+2. **Verify Email**
+   ```bash
+   curl -X POST http://localhost:8000/api/verify \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "test@example.com",
+       "verification_code": "YOUR_VERIFICATION_CODE"
+     }'
+   ```
+
+3. **Login**
+   ```bash
+   curl -X POST http://localhost:8000/api/login \
+     -H "Content-Type: application/json" \
+     -d '{
+       "email": "test@example.com",
+       "password": "password"
+     }'
+   ```
+   
+   This will return an access token to use for authenticated requests.
 
 ## 📚 API Documentation
 
