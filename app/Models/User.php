@@ -8,8 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
-{
+class User extends Authenticatable {
     use HasFactory, Notifiable, HasApiTokens;
     protected $fillable = [
         'name',
@@ -23,26 +22,22 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
+    protected function casts(): array {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
-    public function isAdmin()
-    {
+    public function isAdmin() {
         return $this->role === 'admin';
     }
 
-    public function isProjectManager()
-    {
+    public function isProjectManager() {
         return $this->role === 'project_manager';
     }
 
-    public function isDeveloper()
-    {
+    public function isDeveloper() {
         return $this->role === 'developer';
     }
 }

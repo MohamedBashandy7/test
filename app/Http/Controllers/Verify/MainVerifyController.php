@@ -5,14 +5,13 @@ namespace App\Http\Controllers\Verify;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 
-class MainVerifyController
-{
+class MainVerifyController {
     protected static $verificationMap = [
         'user' => UsersVerifyController::class,
+        'shared' => SharedVerifyController::class,
     ];
 
-    public static function handle(string $method, string $type, Request $request)
-    {
+    public static function handle(string $method, string $type, Request $request) {
         $controller = App::make(self::$verificationMap[$type]);
         $response = empty($controller->$method($request)->original) ? null : $controller->$method($request)->original;
         if ($response) {
@@ -23,8 +22,7 @@ class MainVerifyController
         }
         return true;
     }
-    public static function __callStatic($method, $parameters)
-    {
+    public static function __callStatic($method, $parameters) {
         if (count($parameters) < 3) {
             return function ($request) use ($method, $parameters) {
                 return self::handle($method, $parameters[1], $request);
