@@ -1,33 +1,150 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Project Management System API
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+<img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo">
 </p>
 
-## About Laravel
+## 📋 Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+A robust RESTful API for managing projects, tasks, and user roles with a focus on project approval workflows and task management.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **User Authentication & Authorization**
+  - JWT-based authentication
+  - Role-based access control (Admin, Project Manager, Developer)
+  - Email verification
 
-## Learning Laravel
+- **Project Management**
+  - Create, read, update, and delete projects
+  - Project approval workflow
+  - Project status tracking
+  - File attachments support
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Task Management**
+  - Task creation and assignment
+  - Status updates
+  - Due date tracking
+  - File attachments
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **Analytics**
+  - Project statistics
+  - Task completion rates
+  - User activity tracking
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Getting Started
+
+### Prerequisites
+
+- PHP 8.1+
+- Composer
+- MySQL 8.0+
+- Node.js & NPM
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/project-management-api.git
+   cd project-management-api
+   ```
+
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
+
+3. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+4. **Configure Database**
+   Update your `.env` file with your database credentials:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=project_management
+   DB_USERNAME=your_username
+   DB_PASSWORD=your_password
+   ```
+
+5. **Run Migrations**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. **Start Development Server**
+   ```bash
+   php artisan serve
+   ```
+
+## 📚 API Documentation
+
+### Authentication
+
+All protected routes require an authentication token. Include the token in the request header:
+
+```
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+### Available Endpoints
+
+#### Authentication
+- `POST /api/register` - Register a new user
+- `POST /api/login` - Login user
+- `POST /api/logout` - Logout user
+
+#### Projects
+- `GET /api/projects` - List all projects
+- `POST /api/projects` - Create a new project
+- `GET /api/projects/{project}` - Get project details
+- `PUT /api/projects/{project}` - Update project
+- `DELETE /api/projects/{project}` - Delete project
+- `POST /api/projects/{project}/status` - Update project status (approve/reject)
+- `GET /api/projects/pending` - Get pending projects
+
+#### Tasks
+- `GET /api/tasks` - List all tasks
+- `POST /api/tasks` - Create a new task
+- `GET /api/tasks/{task}` - Get task details
+- `PUT /api/tasks/{task}` - Update task
+- `DELETE /api/tasks/{task}` - Delete task
+- `PUT /api/tasks/{task}/status` - Update task status
+
+#### Analytics
+- `GET /api/stats` - Get system statistics
+
+## 🧪 Testing
+
+Run the test suite with:
+
+```bash
+php artisan test
+```
+
+## 🔒 Security
+
+If you discover any security vulnerabilities, please email security@example.com instead of using the issue tracker.
+
+## 📝 License
+
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) before submitting pull requests.
+
+## 📧 Support
+
+For support, email support@example.com or open an issue in the GitHub repository.
+
+---
+
+Built with ❤️ using [Laravel](https://laravel.com)
 
 ## Laravel Sponsors
 
@@ -44,18 +161,8 @@ We would like to extend our thanks to the following sponsors for funding Laravel
 - **[Redberry](https://redberry.international/laravel-development)**
 - **[Active Logic](https://activelogic.com)**
 
-## Contributing
+For support, email support@example.com or open an issue in the GitHub repository.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Built with ❤️ using [Laravel](https://laravel.com)
