@@ -110,4 +110,20 @@ class UsersVerifyController extends Controller {
             ], 400);
         }
     }
+    public static function updateTaskByUser(Request $request) {
+        if (!$request->has('status') || empty($request->status)) {
+            return response([
+                'success' => false,
+                'message' => 'الحالة مطلوبة',
+            ], 400);
+        }
+    }
+    public static function updateProjectStatus(Request $request) {
+        if (!$request->has('status') || empty($request->status)) {
+            return response([
+                'success' => false,
+                'message' => 'الحالة مطلوبة',
+            ], 400);
+        }
+    }
 }

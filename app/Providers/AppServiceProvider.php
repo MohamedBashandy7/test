@@ -10,6 +10,13 @@ use App\Policies\ProjectsPolicy;
 use App\Policies\TasksPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
+use App\Events\ProjectApprovalRequested;
+use App\Listeners\Queue\SendProjectApprovalRequestToAdmins;
+use App\Events\ProjectApproved;
+use App\Listeners\Queue\NotifyProjectManagerAfterApproval;
+use App\Events\ProjectRejected;
+use App\Listeners\Queue\NotifyProjectManagerAfterRejection;
 
 class AppServiceProvider extends ServiceProvider {
     protected $policies = [
@@ -25,5 +32,9 @@ class AppServiceProvider extends ServiceProvider {
         Gate::policy(Projects::class, ProjectsPolicy::class);
         Gate::policy(User::class, UsersPolicy::class);
         Gate::policy(Tasks::class, TasksPolicy::class);
+
+        Event::listen(ProjectApprovalRequested::class, [SendProjectApprovalRequestToAdmins::class, 'handle']);
+        Event::listen(ProjectApproved::class, [NotifyProjectManagerAfterApproval::class, 'handle']);
+        Event::listen(ProjectRejected::class, [NotifyProjectManagerAfterRejection::class, 'handle']);
     }
 }

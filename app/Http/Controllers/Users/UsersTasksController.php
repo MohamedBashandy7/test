@@ -9,28 +9,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Verify\MainVerifyController;
 
 
 class UsersTasksController extends Controller {
-    public function index() {
-        // $user = Auth::user();
-        // $query = Tasks::with(['assignee', 'project']);
-
-        // if (!$user->isAdmin()) {
-        //     $query->where(function($q) use ($user) {
-        //         $q->where('assigned_to', $user->id)
-        //           ->orWhereHas('project', function($project) use ($user) {
-        //               $project->where('project_manager_id', $user->id);
-        //           });
-        //     });
-        // }
-
-        // return response()->json([
-        //     'success' => true,
-        //     'data' => $query->get()
-        // ]);
-    }
 
     public function store(Request $request): JsonResponse {
         $this->authorize('create', Tasks::class);
@@ -51,12 +34,35 @@ class UsersTasksController extends Controller {
             'data' => $task->load(['assignee', 'project'])
         ]);
     }
-
     public function update(Request $request, Tasks $task): JsonResponse {
         $this->authorize('update', $task);
-        $task->update(['status' => $request->status]);
+        MainVerifyController::addTasks('addTasks', 'user')($request);
+
+        $data = [
+            'title' => $request->title,
+            'description' => $request->description,
+            'assigned_to' => $request->assigned_to,
+            'project_id' => $request->project_id,
+            'due_date' => $request->due_date,
+            'updated_by' => Auth::id()
+        ];
+
+        $newAttachmentPath = $this->saveAttachmentFromRequest($request);
+        if ($newAttachmentPath !== null) {
+            if (!empty($task->attachment_path)) {
+                $oldPath = public_path($task->attachment_path);
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
+            }
+            $data['attachment_path'] = $newAttachmentPath;
+        }
+
+        $task->update($data);
         return response()->json($task);
     }
+
+
 
     private function saveAttachmentFromRequest(Request $request): ?string {
         $attachmentsDir = public_path('attachments');
@@ -64,11 +70,54 @@ class UsersTasksController extends Controller {
             File::makeDirectory($attachmentsDir, 0775, true);
         }
 
+        // Case 1: Traditional multipart file upload
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
             $extension = $file->getClientOriginalExtension();
             $filename = Str::uuid()->toString() . ($extension ? ('.' . $extension) : '');
             $file->move($attachmentsDir, $filename);
+            return 'attachments/' . $filename;
+        }
+
+        // Case 2: JSON base64 payload under `attachment`
+        $attachmentInput = $request->input('attachment');
+        if (is_string($attachmentInput) && $attachmentInput !== '') {
+            $base64Data = $attachmentInput;
+            $extension = null;
+
+            // data URL: data:mime/type;base64,xxxx
+            if (preg_match('/^data:(.*?);base64,(.*)$/', $attachmentInput, $matches) === 1) {
+                $mimeType = $matches[1] ?? null;
+                $base64Data = $matches[2] ?? '';
+                $extension = match ($mimeType) {
+                    'application/pdf' => 'pdf',
+                    'image/jpeg', 'image/jpg' => 'jpg',
+                    'image/png' => 'png',
+                    'image/gif' => 'gif',
+                    'text/plain' => 'txt',
+                    default => null
+                };
+            }
+
+            // Fallback: try provided name or explicit extension fields
+            if ($extension === null) {
+                $providedName = (string) $request->input('attachment_name', '');
+                if ($providedName !== '') {
+                    $pathInfoExt = pathinfo($providedName, PATHINFO_EXTENSION);
+                    $extension = $pathInfoExt !== '' ? $pathInfoExt : null;
+                }
+                if ($extension === null) {
+                    $extension = (string) $request->input('attachment_extension', '') ?: null;
+                }
+            }
+
+            $binary = base64_decode($base64Data, true);
+            if ($binary === false) {
+                return null;
+            }
+
+            $filename = Str::uuid()->toString() . ($extension ? ('.' . $extension) : '');
+            File::put($attachmentsDir . DIRECTORY_SEPARATOR . $filename, $binary);
             return 'attachments/' . $filename;
         }
 
@@ -85,44 +134,14 @@ class UsersTasksController extends Controller {
         ]);
     }
 
-    public function getProjectTasks(Projects $project) {
-        // $user = Auth::user();
-
-        // // Check if user has access to this project
-        // if (!$user->isAdmin() && $user->id !== $project->project_manager_id) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Unauthorized to view tasks for this project'
-        //     ], 403);
-        // }
-
-        // $tasks = $project->tasks()
-        //     ->with(['assignee', 'project'])
-        //     ->when(!$user->isAdmin() && !$user->isProjectManager(), function($query) use ($user) {
-        //         // Regular users can only see their own tasks
-        //         return $query->where('assigned_to', $user->id);
-        //     })
-        //     ->get();
-
-        // return response()->json([
-        //     'success' => true,
-        //     'data' => $tasks
-        // ]);
-    }
-
     public function updateStatus(Request $request, Tasks $task): JsonResponse {
         $this->authorize('updateStatus', $task);
-
-        $validated = $request->validate([
-            'status' => 'required|in:to_do,in_progress,done'
-        ]);
-
-        $task->update(['status' => $validated['status']]);
-
+        MainVerifyController::updateTaskByUser('updateTaskByUser', 'user')($request);
+        $task->update(['status' => $request->status]);
         return response()->json([
             'success' => true,
             'message' => 'Task status updated successfully',
-            'data' => $task->fresh(['assignee', 'project'])
+            'data' => $task
         ]);
     }
 }

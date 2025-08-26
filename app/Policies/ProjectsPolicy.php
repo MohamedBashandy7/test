@@ -30,7 +30,19 @@ class ProjectsPolicy {
     }
 
     public function assignProjectManager(User $user): bool {
-        // فقط المدير يمكنه تعيين مديري مشاريع
+        return $user->isAdmin();
+    }
+
+    public function approve(User $user): bool {
+        return $user->isAdmin();
+    }
+    public function getAllPendingProjects(User $user): bool {
+        return $user->isAdmin();
+    }
+    public function updateProjectStatus(User $user): bool {
+        return $user->isAdmin();
+    }
+    public function isAdmin(User $user): bool {
         return $user->isAdmin();
     }
 }

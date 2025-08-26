@@ -15,6 +15,11 @@ class Projects extends Model {
         'description',
         'project_manager_id',
         'status',
+        'approval_status',
+        'approved_by',
+        'approved_at',
+        'rejected_by',
+        'rejected_at',
         'start_date',
         'end_date',
     ];
@@ -22,9 +27,19 @@ class Projects extends Model {
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     public function projectManager() {
         return $this->belongsTo(User::class, 'project_manager_id');
+    }
+
+    public function approver() {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function rejecter() {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 }
